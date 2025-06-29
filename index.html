@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahan Ajar Interaktif: Pengenalan Komponen Komputer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the body and font. Overrides default Tailwind for specific elements */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            color: #333; /* Warna teks umum diubah menjadi abu-abu gelap untuk keterbacaan */
+            overflow: hidden; /* Mencegah scrolling karena konten akan berbasis slide */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Memastikan tinggi viewport penuh */
+            background-color: #f0f4f8; /* Warna latar belakang cadangan */
+        }
+
+        /* New div for blurred background image */
+        .blurred-background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('bg.jpg'); /* Latar belakang halaman keseluruhan */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            filter: blur(5px); /* Terapkan efek blur ke overlay ini */
+            -webkit-filter: blur(5px); /* Untuk dukungan Safari */
+            z-index: -1; /* Letakkan di belakang konten lain */
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            color: #2c3e50; /* Warna judul yang lebih gelap untuk kontras */
+        }
+
+        /* PC Monitor Container */
+        .pc-setup {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 95%; /* Lebar responsif */
+            max-width: 1200px; /* Lebar maksimal untuk keseluruhan pengaturan */
+            margin: auto;
+            min-height: 90vh; /* Memastikan mengambil sebagian besar layar */
+            position: relative; /* Diperlukan untuk menempatkan tombol navigasi relatif terhadap ini */
+            z-index: 1; /* Memastikan pengaturan PC berada di atas latar belakang yang blur */
+        }
+
+        .monitor {
+            background-color: #2c3e50; /* Abu-abu gelap untuk casing monitor */
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            border: 10px solid #1a202c; /* Bingkai gelap yang lebih tebal */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 16 / 9; /* Rasio aspek monitor yang umum */
+            width: 100%; /* Mengisi lebar parent */
+            max-width: 900px; /* Ukuran maksimal untuk monitor itu sendiri */
+            overflow: hidden; /* Sembunyikan apapun yang meluap dari layar monitor */
+            padding: 2.5%; /* Padding berfungsi sebagai bezel */
+            box-sizing: border-box;
+        }
+
+        .screen {
+            background-color: #000000; /* Latar belakang hitam untuk layar sebenarnya */
+            width: 100%;
+            height: 100%;
+            border-radius: 8px; /* Sudut layar sedikit membulat */
+            position: relative;
+            display: flex; /* Flexbox untuk menengahkan slide */
+            overflow: hidden; /* Konten di dalamnya tidak boleh tumpah */
+        }
+
+        /* Monitor Stand and Base */
+        .monitor-stand {
+            width: 15%;
+            max-width: 120px;
+            height: 50px;
+            background-color: #2c3e50;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 5px;
+        }
+
+        .monitor-base {
+            width: 30%;
+            max-width: 300px;
+            height: 20px;
+            background-color: #2c3e50;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin-top: 5px;
+        }
+
+        /* Styling for the main content area (each slide box) - Now inside the screen */
+        .content-section {
+            background-color: #ffffff; /* Latar belakang putih solid untuk keterbacaan */
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Bayangan lebih ringan untuk konten di dalam layar */
+            padding: 2% 4%; /* Padding yang lebih besar untuk ruang bernapas */
+            margin: 0; /* Tanpa margin karena layar penuh di dalam monitor */
+            border-left: 5px solid #3498db; /* Bingkai aksen yang lebih tipis */
+            width: 100%; /* Mengisi lebar layar penuh */
+            height: 100%; /* Mengisi tinggi layar penuh */
+            box-sizing: border-box;
+            display: none; /* Tersembunyi secara default, ditampilkan oleh JS */
+            flex-direction: column;
+            align-items: flex-start; /* Sejajarkan konten ke awal (kiri) secara default */
+            justify-content: space-between; /* Distribusikan konten dari atas ke bawah */
+            position: absolute; /* Posisikan secara absolut di dalam layar */
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            overflow-y: auto; /* Diubah menjadi auto untuk scrolling vertikal */
+            overflow-x: hidden; /* Memastikan tidak ada scrolling horizontal */
+        }
+        .content-section.active {
+            display: flex; /* Tampilkan slide aktif */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Specific alignment for title/cover slide */
+        #slide-0 {
+            justify-content: center; /* Tengahkan konten secara vertikal */
+            align-items: center; /* Tengahkan konten secara horizontal */
+            text-align: center;
+        }
+
+        /* Heading styles - Adjusted for screen size and fitting */
+        .section-title {
+            font-size: 2rem; /* Ukuran font lebih besar untuk judul utama */
+            font-weight: 700;
+            color: #1a202c; /* Warna lebih gelap untuk kontras */
+            margin-bottom: 1.2rem; /* Jarak lebih besar di bawah judul utama */
+            padding-bottom: 0.8rem; /* Padding lebih besar */
+            border-bottom: 3px solid #3498db;
+            line-height: 1.2;
+            width: 100%;
+            text-align: center; /* Judul utama tetap di tengah */
+        }
+        .subsection-title {
+            font-size: 1.6rem; /* Ukuran font lebih besar untuk sub-judul */
+            font-weight: 600;
+            color: #2b6cb0;
+            margin-top: 1.8rem; /* Jarak lebih besar di atas sub-judul */
+            margin-bottom: 1.2rem; /* Margin lebih besar */
+            border-left: 4px solid #4299e1;
+            padding-left: 1rem; /* Padding lebih besar */
+            align-self: flex-start;
+            width: 100%;
+            text-align: left; /* Sejajarkan ke kiri */
+        }
+        .sub-subsection-title {
+            font-size: 1.3rem; /* Ukuran font lebih besar untuk sub-sub-judul */
+            font-weight: 600;
+            color: #2c5282;
+            margin-top: 1.2rem; /* Jarak lebih besar */
+            margin-bottom: 1rem; /* Jarak lebih besar */
+            align-self: flex-start;
+            width: 100%;
+            text-align: left; /* Sejajarkan ke kiri */
+        }
+
+        /* Paragraphs within content sections */
+        .content-section p {
+            margin-bottom: 1.2em; /* Spasi standar antara paragraf */
+            text-align: justify; /* Justify teks untuk tampilan blok yang lebih rapi */
+            font-size: 1em; /* Ukuran font sedikit lebih besar untuk paragraf */
+            line-height: 1.7; /* Jarak antar baris sedikit lebih longgar */
+            color: #4a5568; /* Warna teks yang sedikit lebih gelap untuk kontras */
+        }
+        /* Specific adjustments for cover slide paragraphs */
+        #slide-0 p {
+            text-align: center;
+            font-size: 1.3em; /* Teks utama di cover tetap mudah dibaca */
+            color: #2d3748; /* Warna yang lebih gelap untuk teks cover */
+        }
+
+        /* List styling */
+        ul.styled-list {
+            list-style: disc; /* Gunakan bullet disc */
+            padding-left: 1.8em; /* Indent daftar */
+            width: 100%;
+            flex-grow: 1; /* Izinkan daftar tumbuh dan mengisi ruang */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Tengahkan item daftar secara vertikal jika sedikit */
+        }
+        ul.styled-list li {
+            padding: 0.5rem 0.8rem; /* Padding sedikit lebih besar */
+            margin-bottom: 0.5rem; /* Margin lebih besar */
+            background-color: #e2f2ff;
+            border-left: 5px solid #3182ce;
+            border-radius: 0.6rem;
+            font-size: 0.95em; /* Ukuran font sedikit lebih besar untuk item daftar */
+            color: #2d3748; /* Warna teks yang lebih gelap untuk kontras */
+        }
+        ul.styled-list li:hover {
+            background-color: #cce7ff;
+            transform: translateX(3px); /* Efek hover yang kurang agresif */
+        }
+
+        /* Image gallery styling */
+        .image-gallery {
+            display: flex; /* Diubah menjadi flexbox untuk distribusi gambar yang lebih baik */
+            flex-wrap: wrap; /* Izinkan gambar untuk pindah ke baris berikutnya */
+            justify-content: center; /* Tengahkan gambar secara horizontal */
+            align-items: center; /* Tengahkan gambar secara vertikal */
+            gap: 1.5rem; /* Jarak yang lebih besar untuk gambar */
+            margin-top: 1.5rem; /* Margin yang lebih besar */
+            margin-bottom: 1.5rem; /* Margin bawah yang lebih besar */
+            width: 100%;
+            flex-grow: 1; /* Izinkan galeri tumbuh dan mengambil ruang vertikal yang tersedia */
+        }
+        .image-gallery img {
+            max-width: 100%; /* Pastikan gambar tidak melebihi lebar kontainer */
+            max-height: 100%; /* Pastikan gambar tidak melebihi tinggi kontainer */
+            height: auto; /* Izinkan tinggi menyesuaikan secara otomatis berdasarkan max-height */
+            width: auto; /* Izinkan lebar menyesuaikan secara otomatis berdasarkan max-width */
+            object-fit: contain; /* Pastikan gambar pas tanpa pemotongan */
+            border-radius: 0.6rem; /* Radius border sedikit lebih kecil */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Bayangan yang lebih kuat */
+            padding: 4px;
+        }
+
+        /* Specific style for large images (like in slide 3) */
+        .content-section#slide-3 .image-gallery img {
+            max-height: 80%; /* Izinkan gambar utama di slide 3 mengambil lebih banyak ruang vertikal */
+            width: 100%; /* Buat agar lebih mengisi lebar */
+            object-fit: contain;
+        }
+
+
+        /* Card grid styling */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Min-width yang disesuaikan untuk kesesuaian yang lebih baik */
+            gap: 1.2rem; /* Jarak yang lebih besar untuk kartu */
+            margin-top: 1.5rem; /* Margin yang lebih besar */
+            margin-bottom: 1.5rem; /* Margin bawah yang lebih besar */
+            width: 100%;
+            flex-grow: 1; /* Izinkan kartu tumbuh */
+        }
+        .card {
+            padding: 1rem; /* Padding yang lebih besar */
+            min-height: 80px; /* Kartu yang sedikit lebih tinggi */
+            font-size: 0.95em; /* Teks di dalam kartu */
+            border-radius: 0.7rem;
+            border-top: 4px solid #3498db; /* Bingkai atas yang lebih tebal */
+            background-color: #f7fafc; /* Latar belakang kartu yang sedikit berbeda */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Bayangan kartu */
+            display: flex; /* Untuk menengahkan teks */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #2d3748; /* Warna teks kartu yang lebih gelap */
+        }
+        .card h3 {
+            font-size: 1.05em; /* Ukuran font lebih besar untuk judul kartu */
+            font-weight: 600; /* Tebal */
+        }
+
+        /* Table styling */
+        table {
+            width: 100%; /* Pastikan tabel mengisi lebar penuh */
+            margin: 1.5rem 0; /* Margin yang lebih besar */
+            font-size: 0.9em; /* Ukuran font yang lebih besar untuk tabel */
+            line-height: 1.5; /* Jarak antar baris yang lebih longgar untuk sel tabel */
+            flex-grow: 1; /* Izinkan tabel tumbuh */
+            display: flex;
+            flex-direction: column;
+            border-collapse: collapse; /* Menggabungkan border sel */
+        }
+        table thead {
+            flex-shrink: 0; /* Mencegah header menyusut */
+        }
+        table tbody {
+            flex-grow: 1; /* Izinkan tbody mengisi ruang */
+            overflow-y: auto; /* Izinkan scrolling internal untuk tbody jika diperlukan */
+            display: block; /* Diperlukan untuk overflow-y pada tbody */
+            max-height: 100%; /* Batasi tinggi untuk mencegah scrollbar mendorong konten */
+        }
+        table th,
+        table td {
+            padding: 0.8rem 1rem; /* Padding yang lebih besar */
+            white-space: normal; /* Izinkan teks membungkus dalam sel tabel */
+            text-align: left; /* Sejajarkan teks ke kiri */
+            border: 1px solid #e2e8f0; /* Border tabel */
+            color: #2d3748; /* Warna teks yang lebih gelap */
+        }
+        table th {
+            background-color: #edf2f7; /* Latar belakang header tabel */
+            font-weight: 700; /* Font lebih tebal untuk header */
+        }
+        /* Specific widths for table columns to prevent excessive empty space */
+        table th:nth-child(1), table td:nth-child(1) { width: 25%; } /* Lebar yang disesuaikan */
+        table th:nth-child(2), table td:nth-child(2) { width: 35%; } /* Lebar yang disesuaikan */
+        table th:nth-child(3), table td:nth-child(3) { width: 40%; } /* Lebar yang disesuaikan */
+
+
+        /* Navigation Buttons - Positioned relative to the whole setup */
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 101;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 16px; /* Ukuran tombol yang lebih besar */
+            font-size: 1.6rem; /* Ukuran font yang lebih besar */
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Bayangan yang lebih kuat */
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+            width: 55px; /* Lebar tetap untuk konsistensi */
+            height: 55px; /* Tinggi tetap untuk konsistensi */
+            display: flex; /* Tengahkan konten */
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-50%) scale(1.08); /* Efek hover yang sedikit lebih besar */
+        }
+        .nav-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+            transform: translateY(-50%);
+        }
+        #prevBtn {
+            left: 5%;
+        }
+        #nextBtn {
+            right: 5%;
+        }
+        
+        /* Modal - remains full page */
+        .modal {
+            position: fixed;
+            z-index: 2000;
+        }
+        .modal-content {
+            padding: 25px; /* Padding modal yang lebih besar */
+        }
+        .modal-content img {
+            max-height: 75vh; /* Batasi tinggi gambar modal */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1024px) {
+            .monitor {
+                padding: 1.5%; /* Mengurangi bezel monitor */
+            }
+            .content-section {
+                padding: 1.8% 3.5%; /* Padding yang disesuaikan untuk layar sedang */
+            }
+            .section-title {
+                font-size: 1.8rem; /* Disesuaikan untuk layar sedang */
+            }
+            .subsection-title {
+                font-size: 1.4rem;
+            }
+            .sub-subsection-title {
+                font-size: 1.1rem;
+            }
+            .content-section p {
+                font-size: 0.95em; /* Disesuaikan */
+            }
+            ul.styled-list li {
+                font-size: 0.9em; /* Disesuaikan */
+            }
+            .image-gallery img {
+                max-height: 60%; /* Tinggi maks yang disesuaikan */
+            }
+            .card {
+                min-height: 70px; /* Disesuaikan */
+                font-size: 0.9em; /* Disesuaikan */
+            }
+            .card h3 {
+                font-size: 0.95em; /* Disesuaikan */
+            }
+            table {
+                font-size: 0.8em; /* Disesuaikan */
+            }
+            table th, table td {
+                padding: 0.7rem 0.9rem; /* Disesuaikan */
+            }
+            .nav-button {
+                padding: 10px 14px;
+                font-size: 1.4rem;
+                width: 48px;
+                height: 48px;
+            }
+            #prevBtn { left: 2%; }
+            #nextBtn { right: 2%; }
+        }
+
+        @media (max-width: 768px) {
+            .monitor {
+                border: 6px solid #1a202c;
+                padding: 1%;
+            }
+            .content-section {
+                padding: 1.2% 2.5%; /* Padding yang lebih berkurang */
+            }
+            .section-title {
+                font-size: 1.5rem;
+                margin-bottom: 0.8rem;
+            }
+            .subsection-title {
+                font-size: 1.2rem;
+                margin-top: 1.2rem;
+                margin-bottom: 0.8rem;
+                padding-left: 0.6rem;
+            }
+            .sub-subsection-title {
+                font-size: 1em;
+                margin-top: 1rem;
+                margin-bottom: 0.6rem;
+            }
+            .content-section p {
+                font-size: 0.88em; /* Disesuaikan */
+                line-height: 1.6; /* Jarak antar baris lebih longgar untuk layar kecil */
+            }
+            ul.styled-list {
+                padding-left: 1.5em;
+            }
+            ul.styled-list li {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.85em; /* Disesuaikan */
+            }
+            .image-gallery img {
+                max-height: 55%; /* Tinggi maks yang disesuaikan */
+            }
+            .card {
+                min-height: 60px; /* Disesuaikan */
+                font-size: 0.85em; /* Disesuaikan */
+                padding: 0.8rem;
+            }
+            .card h3 {
+                font-size: 0.9em; /* Disesuaikan */
+            }
+            table {
+                font-size: 0.75em; /* Disesuaikan */
+                line-height: 1.5; /* Jarak antar baris lebih longgar */
+            }
+            table th, table td {
+                padding: 0.5rem 0.7rem;
+            }
+            .nav-button {
+                padding: 8px 12px;
+                font-size: 1.2rem;
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* CSS for Blink Animation */
+        @keyframes blinkOut {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes blinkIn {
+            0% { opacity: 0; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .blink-out {
+            animation: blinkOut 0.15s forwards; /* Cepat pudar keluar */
+        }
+
+        .blink-in {
+            animation: blinkIn 0.15s forwards; /* Cepat pudar masuk */
+        }
+    </style>
+</head>
+<body>
+    <!-- New div for blurred background image -->
+    <div class="blurred-background-overlay"></div>
+
+    <div class="pc-setup">
+        <div class="monitor">
+            <div class="screen" id="screen"> <!-- Added id="screen" for easier selection -->
+                <!-- Main Content Area - Each section now acts as a slide inside the screen -->
+                <main class="main-content w-full h-full">
+
+                    <!-- Slide 1: Cover Page (INFORMATIKA) -->
+                    <section id="slide-0" class="content-section">
+                        <h1 class="section-title">INFORMATIKA</h1>
+                        <p class="text-xl font-bold text-center text-blue-700 mt-4 mb-2">PENGENALAN KOMPONEN KOMPUTER</p>
+                        <p class="text-base text-center text-gray-600 mb-4">{Minggu ke-3}  {Pertemuan 5}</p>
+                    </section>
+
+                    <!-- Slide 2: PENGENALAN KOMPONEN KOMPUTER & Komponen Proses List -->
+                    <section id="slide-1" class="content-section">
+                        <h1 class="section-title">PENGENALAN KOMPONEN KOMPUTER</h1>
+                        <h2 class="subsection-title text-center !border-none !p-0 mt-8">Komponen Proses</h2>
+                        <div class="card-grid">
+                            <div class="card"><h3>Mainboard</h3></div>
+                            <div class="card"><h3>Processor</h3></div>
+                            <div class="card"><h3>RAM</h3></div>
+                            <div class="card"><h3>Storage</h3></div>
+                            <div class="card"><h3>Optic Drive</h3></div>
+                            <div class="card"><h3>VGA Card</h3></div>
+                            <div class="card"><h3>Sound Card</h3></div>
+                            <div class="card"><h3>LAN Card</h3></div>
+                        </div>
+                    </section>
+
+                    <!-- Slide 3: Mainboard Introduction -->
+                    <section id="slide-2" class="content-section">
+                        <h2 class="subsection-title">Mainboard</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Motherboard atau yang juga dikenal dengan nama mainboard, mobo dan juga papan induk dalam perangkat keras komputer merupakan salah satu dari bagian CPU yang sangat penting.
+                            Motherboard sendiri pada dasarnya memiliki fungsi utama, yaitu sebagai tempat disusunnya seluruh rangkaian sistem komputer, seperti Processor, chipset, RAM, Harddisk, VGA, Fungsi LAN Card, dan juga semua socket-socket dan juga slot dari sebuah komputer.
+                        </p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 4: Mainboard - Blok Diagram MB -->
+                    <section id="slide-3" class="content-section">
+                        <h2 class="subsection-title">Mainboard</h2>
+                        <h3 class="sub-subsection-title">Blok Diagram MB</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Blok Diagram Motherboard -->
+                            <img src="BlokDiagramMD.gif" alt="Blok Diagram Motherboard" data-description="Diagram ini menunjukkan arsitektur dasar dan koneksi antar komponen utama pada motherboard.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 5: Mainboard - Bagian-bagian Mainboard -->
+                    <section id="slide-4" class="content-section">
+                        <h2 class="subsection-title">Mainboard</h2>
+                        <h3 class="sub-subsection-title">Bagian-bagian Mainboard</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Bagian-bagian Motherboard -->
+                            <img src="Bagian_bagian_mainboard.jpg" alt="Bagian-bagian Motherboard" data-description="Gambar motherboard dengan label menunjukkan bagian-bagian seperti soket CPU, slot RAM, slot PCIe, dan port I/O.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 6: Jenis Motherboard -->
+                    <section id="slide-5" class="content-section">
+                        <h2 class="subsection-title">Mainboard</h2>
+                        <h3 class="sub-subsection-title">Jenis Motherboard:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>Motherboard AT Baby/AT (Advance Technology)</li>
+                            <li>Motherboard ATX (Advance Technology Extended)</li>
+                            <li>Motherboard BTX (Balanced Technology Extended)</li>
+                            <li>Motherboard ITX (Information Technology Extended)</li>
+                        </ul>
+                        <div class="image-gallery">
+                            <!-- Image of Perbandingan Ukuran Motherboard ITX -->
+                            <img src="jenis_jenis_motherboard.jpg" alt="Perbandingan Ukuran Motherboard ITX" data-description="Ilustrasi perbandingan ukuran Mini-ITX, Nano-ITX, Pico-ITX, dan Mobile-ITX.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 7: Processor Introduction -->
+                    <section id="slide-6" class="content-section">
+                        <h2 class="subsection-title">Prosesor</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Processor adalah salah satu komponen penting komputer yang berfungsi untuk memproses data dan mengontrol sistem yang ada pada komputer.
+                            Processor juga bisa disebut sebagai otak dari komputer.
+                            Secara singkat, processor bekerja untuk melakukan perhitungan serta menjalankan perintah-perintah yang diperintahkan oleh pengguna komputer itu sendiri.
+                        </p>
+                        <div class="image-gallery">
+                            <!-- Image of Berbagai Jenis Processor -->
+                            <img src="prosesor.jpg" alt="Berbagai Jenis Processor" data-description="Gambar kolase berbagai jenis dan generasi processor Intel (Core i9, Core i3, Celeron, Atom, dll.) dan Cyrix.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 8: Macam-macam Prosesor -->
+                    <section id="slide-7" class="content-section">
+                        <h2 class="subsection-title">Prosesor</h2>
+                        <h3 class="sub-subsection-title">Macam-macam Prosesor:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>Processor Intel</li>
+                            <li>Processor AMD</li>
+                            <li>Processor Apple</li>
+                            <li>Processor Cyrix VIA</li>
+                            <li>Processor IBM</li>
+                            <li>Processor IDT</li>
+                            <li>Processor Transmeta</li>
+                        </ul>
+                    </section>
+
+                    <!-- Slide 9: RAM Introduction -->
+                    <section id="slide-8" class="content-section">
+                        <h2 class="subsection-title">RAM</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Pengertian RAM (Random Access Memory) adalah suatu hardware di dalam komputer yang berfungsi sebagai tempat penyimpanan data sementara (memori) dan berbagai instruksi program.
+                            Isi RAM dapat diakses secara acak atau tidak tergantung pengaturan tata letaknya. Data di dalam RAM dapat hilang ketika komputer dinon-aktifkan atau daya listrik ke power supply dilepas dari perangkat.
+                        </p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 10: Macam-macam Memory RAM -->
+                    <section id="slide-9" class="content-section">
+                        <h2 class="subsection-title">RAM</h2>
+                        <h3 class="sub-subsection-title">Macam-macam Memory RAM:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>RAM</li>
+                            <li>DRAM (Dynamic Random Access Memory)</li>
+                            <li>FPM RAM (Fast Page Mode DRAM)</li>
+                            <li>EDO RAM (Extended-Data-Out RAM)</li>
+                            <li>SD RAM (Synchronous Dynamic RAM)</li>
+                            <li>RD RAM (Rambus Dynamic RAM)</li>
+                            <li>DDR RAM (Double Data Rate RAM)</li>
+                        </ul>
+                    </section>
+
+                    <!-- Slide 11: Tipe RAM -->
+                    <section id="slide-10" class="content-section">
+                        <h2 class="subsection-title">RAM</h2>
+                        <h3 class="sub-subsection-title">Tipe RAM</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Tipe RAM -->
+                            <img src="tipe_ram.jpg" alt="Tipe RAM" data-description="Gambar perbandingan modul RAM SDRAM, DDR, DDR2, dan DDR3.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 12: Ciri RAM DDR1,2 dan 3 -->
+                    <section id="slide-11" class="content-section">
+                        <h2 class="subsection-title">RAM</h2>
+                        <h3 class="sub-subsection-title">Ciri RAM DDR1,2 dan 3:</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Ciri RAM DDR1, 2 dan 3 -->
+                            <img src="ciri_ram.jpg" alt="Ciri RAM DDR1, 2 dan 3" data-description="Gambar yang menunjukkan perbedaan notch pada modul RAM DDR1, DDR2, dan DDR3 DIMM.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 13: Storage Introduction -->
+                    <section id="slide-12" class="content-section">
+                        <h2 class="subsection-title">Storage</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Storage devices pada sistem komputer adalah kata lain dari secondary storage. Fungsinya untuk menyimpan data dan sistem operasi.
+                            Storage adalah sebuah perangkat digital yang berfungsi untuk menyimpan berbagai macam data digital yang dapat disimpan dalam kurun waktu yang tidak menentu tergantung usia dan perawatan dari perangkat Storage itu sendiri. Saat ini perangkat Storage terus dilakukan pengembangan baik secara jenis perangkatnya, maupun inovasi dari ukurannya.
+                        </p>
+                        <h3 class="sub-subsection-title">Macam-macam Storage:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>Harddisk</li>
+                            <li>SSD</li>
+                            <li>Optic Drive</li>
+                        </ul>
+                    </section>
+
+                    <!-- Slide 14: Storage - Evolution of Memory Storage Devices -->
+                    <section id="slide-13" class="content-section">
+                        <h2 class="subsection-title">Storage</h2>
+                        <h3 class="sub-subsection-title">Evolution of Memory Storage Devices</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Evolution of Memory Storage Devices -->
+                            <img src="macam_macam_storage.jpg" alt="Evolution of Memory Storage Devices" data-description="Infografis yang menunjukkan evolusi perangkat penyimpanan memori dari masa ke masa (floppy disk, CD, USB, SD card, dll).">
+                        </div>
+                    </section>
+
+                    <!-- Slide 15: Harddisk Introduction -->
+                    <section id="slide-14" class="content-section">
+                        <h2 class="subsection-title">Harddisk</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Harddisk adalah salah satu perangkat keras komputer yang menyediakan ruang penyimpanan yang digunakan untuk menyimpan atau membaca data pada komputer. Harddisk merupakan jenis memori komputer yang memiliki sifat non-volatile memory yang berarti data pada memori jenis ini tidak akan hilang meski perangkat tersebut telah dimatikan.
+                        </p>
+                        <div class="image-gallery">
+                            <!-- Image of Harddisk Bagian Dalam -->
+                            <img src="hardis1.jpg" alt="Harddisk Bagian Dalam" data-description="Gambar bagian dalam harddisk yang menunjukkan Spindle, Actuator Arm, Platter, dan Read/write Head.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 16: Harddisk - Interfaces -->
+                    <section id="slide-15" class="content-section">
+                        <h2 class="subsection-title">Harddisk</h2>
+                        <h3 class="sub-subsection-title">Harddisk Interface</h3>
+                        <div class="image-gallery">
+                            <!-- Image of IDE Interface Harddisk -->
+                            <img src="hardis3.jpg" alt="IDE Interface Harddisk" data-description="Gambar harddisk dengan label IDE interface, Drive jumper, dan Power.">
+                            <!-- Image of Serial ATA vs Parallel ATA -->
+                            <img src="hardis4.jpg" alt="Serial ATA vs Parallel ATA" data-description="Perbandingan visual antara konektor Serial ATA (SATA) dan Parallel ATA (PATA).">
+                            <!-- Image of IDE vs SATA Connectors -->
+                            <img src="hardis2.jpg" alt="IDE vs SATA Connectors" data-description="Gambar perbandingan konektor IDE (silang merah) dan SATA (centang hijau).">
+                        </div>
+                    </section>
+
+                    <!-- Slide 17: Konektor Harddisk -->
+                    <section id="slide-16" class="content-section">
+                        <h2 class="subsection-title">Konektor Harddisk</h2>
+                        <div class="image-gallery">
+                            <!-- Image of IDE Molex SATA Connectors -->
+                            <img src="konektor_hardis1.jpg" alt="IDE Molex SATA Connectors" data-description="Diagram berbagai jenis konektor IDE, Molex, SATA power, dan SATA data.">
+                            <!-- Image of SATA dan IDE Connectors on Motherboard -->
+                            <img src="konektor_hardis2.jpg" alt="SATA dan IDE Connectors on Motherboard" data-description="Gambar konektor SATA dan IDE pada motherboard.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 18: SSD Introduction -->
+                    <section id="slide-17" class="content-section">
+                        <h2 class="subsection-title">SSD</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            SSD singkatan dari Solid State Drive atau Solid State Disk, adalah perangkat penyimpan data yang menggunakan serangkaian IC sebagai memori yang digunakan untuk menyimpan data atau informasi.
+                        </p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 19: HDD vs SSD Table -->
+                    <section id="slide-18" class="content-section">
+                        <h2 class="subsection-title">HDD vs SSD</h2>
+                        <div class="overflow-x-auto rounded-xl">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Komponen</th>
+                                        <th>SSD (Solid State Drive)</th>
+                                        <th>HDD (Hard Disk Drive)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Daya</td><td>2 - 3 watt</td><td>6 - 7 watt</td></tr>
+                                    <tr><td>Harga</td><td>Masih Mahal</td><td>Masih lebih murah</td></tr>
+                                    <tr><td>Kapasitas</td><td>Notebook: kurang dari 1TB, Desktop: Max 1TB</td><td>Notebook: 500GB - 2 TB, Desktop: 6 TB</td></tr>
+                                    <tr><td>Waktu booting</td><td>10 - 13 detik</td><td>30 - 40 detik</td></tr>
+                                    <tr><td>Noise (kebisingan)</td><td>Tidak memiliki komponen yang bergerak sehingga tidak menghasilkan suara bising</td><td>Terdapat komponen bergerak sehingga menghasilkan suara bising</td></tr>
+                                    <tr><td>Getaran</td><td>Tidak ada getaran</td><td>Ada getaran</td></tr>
+                                    <tr><td>Panas</td><td>Tidak ada menghasilkan panas</td><td>Menghasilkan panas</td></tr>
+                                    <tr><td>Failure Rate (Tingkat Kegagalan)</td><td>2.0 juta jam</td><td>1.5 juta jam</td></tr>
+                                    <tr><td>Kecepatan baca / tulis</td><td>Umumnya 200 MB/s, bahkan 550 MB/s untuk SSD yang tercanggih.</td><td>Antara 50 - 120 MB/s</td></tr>
+                                    <tr><td>Enkripsi (kode sandi)</td><td>FDE (Full Disk Encryption)</td><td>FDE (Full Disk Encryption)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Slide 20: Optic Drive Introduction -->
+                    <section id="slide-19" class="content-section">
+                        <h2 class="subsection-title">Optic Drive</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Perangkat keras yang menggunakan sinar laser atau gelombang elektromagnetik untuk melakukan proses pembacaan (reading) dari optical disc dan penulisan (writing) data.
+                            Beberapa drives hanya bisa membaca data pada disc, namun teknologi saat ini memperbolehkan sebuah drive untuk melakukan pembacaan maupun penulisan pada drives.
+                        </p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 21: Macam-macam Optic Drive & Images -->
+                    <section id="slide-20" class="content-section">
+                        <h2 class="subsection-title">Optic Drive</h2>
+                        <h3 class="sub-subsection-title">Macam-macam optic drive:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>CD-ROM</li>
+                            <li>CD-RW</li>
+                            <li>DVD-ROM</li>
+                            <li>DVD Combo</li>
+                            <li>DVD-RW</li>
+                        </ul>
+                        <div class="image-gallery">
+                            <!-- Image of SATA dan IDE Optical Drive -->
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjezA54LqJfFWxq74ACUdAgnIoiaX833kPSg&s" alt="SATA dan IDE Optical Drive" data-description="Perbandingan antara optical drive dengan antarmuka SATA dan IDE.">
+                            <!-- Image of Optical Drive Blu-ray -->
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYswhuwnZ2veqTmVPKm0ws5semdKQ_SFBsjHqtxjDOFG54q5k77fwzQ1EAWPMujNdkkiU&usqp=CAU" alt="Optical Drive Blu-ray" data-description="Gambar drive Blu-ray dengan sebuah disk di dalamnya.">
+                            <!-- Image of DVD Multi Recorder -->
+                            <img src="https://i.ebayimg.com/images/g/ST4AAOSwJ65l4iE7/s-l400.jpg" alt="DVD Multi Recorder" data-description="Drive DVD Multi Recorder.">
+                            <!-- Image of Optical Drive Eksternal USB -->
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm_bKV2DLIoJ948IWSQmKRB7fzT1307BsfGQ&s" alt="Optical Drive Eksternal USB" data-description="Contoh optical drive eksternal yang terhubung melalui USB.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 22: VGA CARD Introduction -->
+                    <section id="slide-21" class="content-section">
+                        <h2 class="subsection-title">VGA CARD (Video Graphics Array)</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Bagian dari komputer yang digunakan untuk memproses data berupa gambar / video / graphic dan menampilkannya pada monitor melalui VGA port.
+                        </p>
+                        <h3 class="sub-subsection-title">Macam-macam VGA:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>VGA On Board</li>
+                            <li>VGA off board (extension)</li>
+                        </ul>
+                        <div class="image-gallery">
+                            <!-- Image of VGA Port Motherboard -->
+                            <img src="https://teknody.com/image/catalog/teknody/Category/Blog/Perangkat%20Keras/io%20port.jpg" alt="VGA Port Motherboard" data-description="Gambar motherboard dengan berbagai port termasuk VGA.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 23: Sound CARD Introduction -->
+                    <section id="slide-22" class="content-section">
+                        <h2 class="subsection-title">Sound CARD (Kartu Suara)</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            Sound Card (kartu suara) adalah suatu perangkat keras komputer yang berfungsi mengolah data berupa suara (data (digital) menjadi suara).
+                            Dilihat dari cara pemasangannya, sound card dibagi menjadi 3.
+                            <!-- Changed line break to <br> for better HTML consistency -->
+                        </p>
+                        <h3 class="sub-subsection-title">Macam-macam soundcard:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>Sound Card On Board</li>
+                            <li>Sound Card Off Board</li>
+                            <li>Sound Card External</li>
+                        </ul>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 24: Sound Card Off Board & On Board Images -->
+                    <section id="slide-23" class="content-section">
+                        <h2 class="subsection-title">Sound CARD (Kartu Suara)</h2>
+                        <h3 class="sub-subsection-title">Sound Card Off Board</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Sound Card Off Board -->
+                            <img src="https://anisadilla.home.blog/wp-content/uploads/2019/02/a138d-pengertian-sound-card-offboard.jpg" alt="Sound Card Off Board" data-description="Gambar sound card off board dengan label Line-in, Microphone, Line Out (speaker), dan Gaming Controller Port.">
+                        </div>
+                        <h3 class="sub-subsection-title">Sound Card On Board</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Sound Card On Board -->
+                            <img src="https://www.ilmupengetahuan.co.id/wp-content/uploads/2017/08/Screenshot_312.png" alt="Sound Card On Board" data-description="Gambar port audio onboard pada motherboard.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 25: Sound Card External & Ilustrasi Port -->
+                    <section id="slide-24" class="content-section">
+                        <h2 class="subsection-title">Sound CARD (Kartu Suara)</h2>
+                        <h3 class="sub-subsection-title">Sound Card External</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Sound Card External -->
+                            <img src="https://jadistore.com/wp-content/uploads/2018/04/soundcard.jpg" alt="Sound Card External" data-description="Gambar Sound Card External USB.">
+                        </div>
+                        <h3 class="sub-subsection-title">Ilustrasi Port,</h3>
+                        <div class="image-gallery">
+                            <!-- Image of Ilustrasi Port Audio -->
+                            <img src="https://cdn.rri.co.id/berita/Nabire/o/1716364117759-b/qx8g1mhi9vunf5d.jpeg" alt="Ilustrasi Port Audio" data-description="Diagram ilustrasi port audio (Microphone, Line-in, Line-out).">
+                        </div>
+                    </section>
+
+                    <!-- Slide 26: LAN CARD Introduction -->
+                    <section id="slide-25" class="content-section">
+                        <h2 class="subsection-title">LAN CARD</h2>
+                        <p class="text-gray-700 text-justify text-sm">
+                            NIC (Network Interface Card) atau lebih akrab dipanggil LAN Card merupakan perangkat keras jaringan yang berbentuk seperti kartu, dimana fungsi utamanya adalah menghubungkan dua atau lebih komputer / perangkat komputer guna melakukan pertukaran data.
+                        </p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                    <!-- Slide 27: Macam-macam lancard Images -->
+                    <section id="slide-26" class="content-section">
+                        <h2 class="subsection-title">LAN CARD</h2>
+                        <h3 class="sub-subsection-title">Macam-macam lancard:</h3>
+                        <ul class="styled-list text-sm">
+                            <li>USB</li>
+                            <li>USB WIRELESS</li>
+                            <li>PCI</li>
+                            <li>PCI WIRELESS</li>
+                        </ul>
+                        <div class="image-gallery">
+                            <!-- Image of USB LAN Adapter -->
+                            <img src="https://down-id.img.susercontent.com/file/27a2f4ef6b95aadebe5742d8fc0e2965" alt="USB LAN Adapter" data-description="Adaptor USB ke LAN.">
+                            <!-- Image of USB Wireless Adapter -->
+                            <img src="https://static.jakmall.id/2022/06/images/products/d7f69d/detail/usb-wifi-dongle-mt7601-150mbps-wireless-adapter-set-top-box-laptop-pc.jpg" alt="USB Wireless Adapter" data-description="Adaptor USB nirkabel.">
+                            <!-- Image of PCI LAN Card -->
+                            <img src="https://blezacomputer.com/wp-content/uploads/2021/09/Pabrik-Harga-Baru-10-100-Mbps-NIC-RJ45-RTL8139D-JGFDHFGJTGJJaringan-LAN-PCI-Kartu-Adaptor-untuk-Komputer-600x600.jpg" alt="PCI LAN Card" data-description="Kartu LAN PCI.">
+                            <!-- Image of PCI Wireless Card -->
+                            <img src="https://ae01.alicdn.com/kf/HTB1jVvyao_rK1Rjy0Fcq6zEvVXaw.jpg_640x640q90.jpg" alt="PCI Wireless Card" data-description="Kartu nirkabel PCI.">
+                        </div>
+                    </section>
+
+                    <!-- Slide 28: Terima Kasih (Now slide-27 after removal) -->
+                    <section id="slide-27" class="content-section">
+                        <h1 class="section-title text-teal-700">Terima Kasih</h1>
+                        <p class="text-xl text-center text-gray-700 mt-8">Semoga materi ini bermanfaat bagi Anda.</p>
+                        <br>
+                        <br>
+                        <!-- Re-added extra breaks based on user's last request to revert some changes -->
+                    </section>
+
+                </main>
+            </div> <!-- End of .screen -->
+        </div> <!-- End of .monitor -->
+        <div class="monitor-stand"></div>
+        <div class="monitor-base"></div>
+    </div> <!-- End of .pc-setup -->
+
+    <!-- Navigation Buttons - Positioned relative to the overall pc-setup container -->
+    <button id="prevBtn" class="nav-button">&larr;</button>
+    <button id="nextBtn" class="nav-button">&rarr;</button>
+
+
+    <script>
+        // JavaScript for interactivity and dynamic content
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.content-section');
+            const screenElement = document.getElementById('screen'); // Get the screen element
+            let currentSlide = 0; // Start with the first slide (index 0)
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Function to show a specific slide with blink animation
+            function showSlide(index, direction = 'next') {
+                // If there's an active slide, apply blink-out animation
+                const activeSlide = document.querySelector('.content-section.active');
+                if (activeSlide) {
+                    screenElement.classList.add('blink-out'); // Apply blink-out to the screen
+                }
+
+                // Delay the slide change to allow the blink-out animation to play
+                setTimeout(() => {
+                    // Hide all sections
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        section.classList.remove('blink-in'); // Remove any lingering blink-in
+                        section.classList.remove('blink-out'); // Ensure blink-out is removed
+                    });
+
+                    // Remove blink-out from screen once transition is done (visually)
+                    screenElement.classList.remove('blink-out');
+
+                    // Show the current section
+                    const newActiveSlide = sections[index];
+                    newActiveSlide.classList.add('active');
+
+                    // Apply blink-in animation to the new slide
+                    newActiveSlide.classList.add('blink-in');
+
+                    // Remove blink-in after it plays
+                    newActiveSlide.addEventListener('animationend', function handler() {
+                        newActiveSlide.classList.remove('blink-in');
+                        newActiveSlide.removeEventListener('animationend', handler);
+                    });
+
+                    // Update button states
+                    prevBtn.disabled = (index === 0);
+                    nextBtn.disabled = (index === sections.length - 1);
+
+                    // Scroll the active slide to the top if it has overflow
+                    newActiveSlide.scrollTop = 0;
+                }, 150); // Shorter delay to match the blink animation duration
+            }
+
+            // Event listeners for navigation buttons
+            prevBtn.addEventListener('click', function() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    showSlide(currentSlide, 'prev');
+                }
+            });
+
+            nextBtn.addEventListener('click', function() {
+                if (currentSlide < sections.length - 1) {
+                    currentSlide++;
+                    showSlide(currentSlide, 'next');
+                }
+            });
+
+            // Add keyboard navigation for "Enter" key and arrow keys
+            document.addEventListener('keydown', function(event) {
+                const activeSlide = document.querySelector('.content-section.active');
+                if (!activeSlide) return;
+
+                const isScrollable = activeSlide.scrollHeight > activeSlide.clientHeight;
+                const atBottom = activeSlide.scrollTop + activeSlide.clientHeight >= activeSlide.scrollHeight - 1; // -1 for tolerance
+                const atTop = activeSlide.scrollTop === 0;
+                const scrollAmount = 50; // Pixels to scroll
+
+                switch (event.key) {
+                    case 'Enter':
+                    case 'ArrowRight':
+                        // Always go to next slide for Enter or Right Arrow
+                        nextBtn.click();
+                        break;
+                    case 'ArrowLeft':
+                        // Always go to previous slide for Left Arrow
+                        prevBtn.click();
+                        break;
+                    case 'ArrowDown':
+                        if (isScrollable && !atBottom) {
+                            activeSlide.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+                            event.preventDefault(); // Prevent default page scroll
+                        }
+                        // No action if not scrollable or at bottom, as per new requirement
+                        break;
+                    case 'ArrowUp':
+                        if (isScrollable && !atTop) {
+                            activeSlide.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+                            event.preventDefault(); // Prevent default page scroll
+                        }
+                        // No action if not scrollable or at top, as per new requirement
+                        break;
+                }
+            });
+
+            // Initial display: show the first slide
+            showSlide(currentSlide);
+
+            // Image Modal Functionality (Remains the same)
+            const imageModal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            const closeButton = document.querySelector('.close-button');
+
+            if (imageModal && modalImage && modalCaption && closeButton) {
+                document.querySelectorAll('.image-gallery img').forEach(image => {
+                    image.addEventListener('click', function() {
+                        modalImage.src = this.src;
+                        modalCaption.textContent = this.dataset.description || this.alt;
+                        imageModal.style.display = 'flex'; // Use flex to center
+                    });
+                });
+
+                closeButton.addEventListener('click', function() {
+                    imageModal.style.display = 'none';
+                });
+
+                // Close modal when clicking outside of the content
+                window.addEventListener('click', function(event) {
+                    if (event.target == imageModal) {
+                        imageModal.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Removed Quiz Data and Functions
+        });
+    </script>
+</body>
+</html>
